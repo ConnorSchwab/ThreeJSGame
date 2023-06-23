@@ -151,7 +151,7 @@ export function createArrow(
   let geo = new THREE.ExtrudeGeometry(shape, config);
   let mesh = new THREE.Mesh(
     geo,
-    new THREE.MeshPhongMaterial({ color, transparent: true, opacity: 0.5 })
+    new THREE.MeshPhongMaterial({ color, transparent: true, opacity: 0.9 })
   );
   mesh.rotation.x = -Math.PI / 2;
   let grp = new THREE.Group();
@@ -163,8 +163,15 @@ export function createArrow(
   return grp;
 }
 
-export function moveArrow(arrow, direction) {
-  console.log(arrow, direction);
-  arrow.position.addScaledVector(direction, 1);
-  return arrow;
+export function moveArrow(arrowGroup, direction) {
+  const speed = 0.001; // Adjust the speed as needed
+  const translation = direction.clone().multiplyScalar(speed);
+
+  // Update the position of each arrow mesh in the group
+  arrowGroup.children.forEach((arrow) => {
+    arrow.position.add(translation);
+  });
+
+  // Update the position of the arrow's group
+  arrowGroup.position.add(translation);
 }

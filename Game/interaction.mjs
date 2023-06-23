@@ -13,32 +13,39 @@ let activeArrow = false;
 let check = undefined;
 let arrowArray = [];
 
-function timer(nowTime, arrow, matrix, direction) {
+function timer(nowTime, matrix, direction, scene) {
   if (check === undefined) {
     check = nowTime;
-    addNewArrow(arrow, matrix, direction);
+    addNewArrow(matrix, direction, scene);
   } else if (nowTime - check < 1000) {
     return;
   } else {
     check = nowTime;
-    addNewArrow(arrow, matrix, direction);
+    addNewArrow(matrix, direction, scene);
   }
 }
 
-function addNewArrow(arrow, matrix, direction) {
+function addNewArrow(matrix, direction, scene) {
+  let arrow = createArrow(scene, "#fff", 0.01, false);
   arrow.matrix.copy(matrix);
   arrowArray.push({ arrow, direction });
+  console.log(arrow.position);
 }
 
-function showArrow() {
+function showArrow(scene) {
+  console.log(arrowArray);
   for (const currentArrow of arrowArray) {
     currentArrow.arrow.visible = true;
     currentArrow.arrow.matrixAutoUpdate = false;
-    let newArrow = moveArrow(currentArrow.arrow, currentArrow.direction);
-    currentArrow.arrow = newArrow;
+    moveArrow(currentArrow.arrow, currentArrow.direction);
   }
   if (arrowArray.length > 10) {
-    arrowArray.shift();
+    const arrowsToRemove = arrowArray.splice(0, arrowArray.length - 10);
+    for (const removedArrow of arrowsToRemove) {
+      removedArrow.arrow.visible = false;
+      // You can optionally dispose the removed arrow geometry and material here if necessary
+      scene.remove(removedArrow.arrow);
+    }
   }
 }
 
@@ -88,7 +95,6 @@ export async function Interaction(renderer, scene, world, cursor, bill) {
     }
   );
 
-  let shotArrow = createArrow(scene, "#fff", 0.01, false);
   let cursorMove = createArrow(scene, 0x00ff00, 0.012, false);
 
   const lineFunc = createLine(scene);
@@ -250,20 +256,19 @@ export async function Interaction(renderer, scene, world, cursor, bill) {
         world.matrix.premultiply(differenceMatrix);
       } else {
         cursorMove.visible = true;
-
         inverseHand = cursor.matrix.clone().invert();
       }
     } else {
       //activeArrow = false;
       inverseHand = undefined;
+      activeArrow = false;
       cursorMove.visible = false;
-      shotArrow.visible = false;
     }
 
     if (activeArrow) {
-      timer(new Date(), shotArrow, cursor.matrix, direction.clone());
+      timer(new Date(), cursor.matrix, direction.clone(), scene);
       if (arrowArray.length) {
-        showArrow();
+        showArrow(scene);
       }
     }
   }
