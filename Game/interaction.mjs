@@ -264,12 +264,12 @@ export async function Interaction(renderer, scene, world, cursor, bill) {
       activeArrow = false;
       cursorMove.visible = false;
     }
+    if (arrowArray.length) {
+      showArrow(scene);
+    }
 
     if (activeArrow) {
       timer(new Date(), cursor.matrix, direction.clone(), scene);
-      if (arrowArray.length) {
-        showArrow(scene);
-      }
     }
   }
   return { interact };
