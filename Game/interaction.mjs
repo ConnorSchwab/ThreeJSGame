@@ -88,7 +88,7 @@ export async function Interaction(renderer, scene, world, cursor, bill) {
     }
   );
 
-  let shotArrow = createArrow(scene, 0x0000000, 0.01, false);
+  let shotArrow = createArrow(scene, "#fff", 0.01, false);
   let cursorMove = createArrow(scene, 0x00ff00, 0.012, false);
 
   const lineFunc = createLine(scene);
