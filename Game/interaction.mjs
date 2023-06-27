@@ -26,9 +26,12 @@ function timer(nowTime, matrix, direction, scene) {
 }
 
 function addNewArrow(matrix, direction, scene) {
+  console.log("addArrow", direction);
   let arrow = createArrow(scene, "#fff", 0.01, false);
+
   arrow.matrix.copy(matrix);
   arrowArray.push({ arrow, direction });
+
   console.log(arrow.position);
 }
 
@@ -37,7 +40,10 @@ function showArrow(scene) {
   for (const currentArrow of arrowArray) {
     currentArrow.arrow.visible = true;
     currentArrow.arrow.matrixAutoUpdate = false;
-    moveArrow(currentArrow.arrow, currentArrow.direction);
+    const arrowDirection = currentArrow.direction
+      .clone()
+      .applyQuaternion(currentArrow.arrow.quaternion);
+    moveArrow(currentArrow.arrow, arrowDirection);
   }
   if (arrowArray.length > 10) {
     const arrowsToRemove = arrowArray.splice(0, arrowArray.length - 10);
@@ -52,8 +58,8 @@ function showArrow(scene) {
 export async function Interaction(renderer, scene, world, cursor, bill) {
   let physics = await initPhysics();
 
-  let objects = boxes2Grab(world, physics, 10);
-  boxesWithPlane(world, physics, 7);
+  let objects = boxes2Grab(world, physics, 0);
+  boxesWithPlane(world, physics, 0);
 
   let position = new THREE.Vector3();
   let rotation = new THREE.Quaternion();
@@ -140,7 +146,7 @@ export async function Interaction(renderer, scene, world, cursor, bill) {
         }
         if (bs != buttonStr) {
           buttonStr = bs;
-          bill.addLine(buttonStr);
+          //bill.addLine(buttonStr);
         }
 
         if (gamepad.buttons[4].value) {
@@ -165,6 +171,7 @@ export async function Interaction(renderer, scene, world, cursor, bill) {
 
     if (shadowObject === undefined) {
       raycaster.set(position, direction);
+      console.log("ray", direction);
       let intersects = raycaster.intersectObjects(objects);
       if (intersects.length > 0) {
         lineFunc(1, intersects[0].point);
@@ -172,14 +179,20 @@ export async function Interaction(renderer, scene, world, cursor, bill) {
         hitDistance = intersects[0].distance;
         hitPoint.copy(intersects[0].point); // world coords
       } else {
-        endRay.addVectors(cursor.position, direction.multiplyScalar(20));
+        endRay.addVectors(
+          cursor.position,
+          direction.clone().multiplyScalar(20)
+        );
         lineFunc(1, endRay);
       }
     }
 
     if (grabbed) {
       if (shadowObject) {
-        endRay.addVectors(position, direction.multiplyScalar(hitDistance));
+        endRay.addVectors(
+          position,
+          direction.clone().multiplyScalar(hitDistance)
+        );
         lineFunc(1, endRay);
         shadowObject.matrix.copy(
           inverseWorld.clone().multiply(cursor.matrix).multiply(initialGrabbed)
@@ -246,14 +259,14 @@ export async function Interaction(renderer, scene, world, cursor, bill) {
         cursorMove.matrix.copy(cursor.matrix);
         let differenceHand = cursor.matrix.clone().multiply(inverseHand);
         differenceHand.decompose(position, rotation, scale);
-        deltaFlyRotation.set(0, 0, 0, 1);
+        /*deltaFlyRotation.set(0, 0, 0, 1);
         deltaFlyRotation.slerp(rotation.conjugate(), flySpeedRotationFactor);
         differenceMatrix.compose(
           position.multiplyScalar(flySpeedTranslationFactor),
           deltaFlyRotation,
           scale
         );
-        world.matrix.premultiply(differenceMatrix);
+        world.matrix.premultiply(differenceMatrix);*/
       } else {
         cursorMove.visible = true;
         inverseHand = cursor.matrix.clone().invert();
@@ -269,7 +282,14 @@ export async function Interaction(renderer, scene, world, cursor, bill) {
     }
 
     if (activeArrow) {
-      timer(new Date(), cursor.matrix, direction.clone(), scene);
+      // Zerlegung der Matrix des Cursors in Translation, Rotation und Skalierung
+      cursor.matrix.decompose(position, rotation, scale);
+      // Anwendung der CursorRotation auf Richtung
+      direction.applyQuaternion(rotation);
+      let correctDir = direction.clone().normalize();
+      console.log("arrow", correctDir);
+
+      timer(new Date(), cursor.matrix.clone(), correctDir, scene);
     }
   }
   return { interact };

@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { VRButton } from "three/addons/webxr/VRButton.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 let geometries = [
   new THREE.BoxGeometry(0.25, 0.25, 0.25),
@@ -9,6 +10,8 @@ let geometries = [
   new THREE.TorusKnotGeometry(0.2, 0.03, 50, 16),
   new THREE.TorusGeometry(0.2, 0.04, 64, 32),
 ];
+
+const loader = new GLTFLoader();
 
 function randomMaterial() {
   return new THREE.MeshStandardMaterial({
@@ -70,13 +73,13 @@ export function createScene() {
   world.position.z = -1;
   world.updateMatrix();
   scene.add(world);
-  // boxesWithPlane(world);
+  boxesWithPlane(world);
 
   return { scene, camera, renderer, world };
 }
 
 export function boxesWithPlane(parent, noOfBoxes = 100) {
-  for (let i = 0; i < noOfBoxes; ++i) {
+  /*for (let i = 0; i < noOfBoxes; ++i) {
     let height = Math.random() + 0.1;
     let box = new THREE.Mesh(
       new THREE.BoxGeometry(0.1, height, 0.1),
@@ -91,14 +94,14 @@ export function boxesWithPlane(parent, noOfBoxes = 100) {
     box.position.z = Math.random() * 5 - 2.5;
     box.castShadow = true;
     parent.add(box);
-  }
+  }*/
 
   let plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(20, 20, 10),
-    new THREE.MeshStandardMaterial({ color: 0xffffff, side: THREE.DoubleSide })
+    new THREE.PlaneGeometry(20, 20, 30),
+    new THREE.MeshStandardMaterial({ color: "#24110c", side: THREE.DoubleSide })
   );
   plane.receiveShadow = true;
-  plane.position.set(0, -1, 0);
+  plane.position.set(0, -1, 3);
   plane.rotation.x = Math.PI / 2;
   parent.add(plane);
 }
@@ -123,6 +126,23 @@ export function createLine(scene) {
     line.geometry.attributes.position.needsUpdate = true;
   };
 }
+
+/*export async function createRealArrow(parent, x, y, z, scale, cursorMatrix) {
+  let arrow, pos, rot, sc;
+  await loader.load(
+    "./arrow.glb",
+    function (gltf) {
+      arrow = gltf.scene;
+    },
+    undefined,
+    function (error) {
+      console.log("customerror", error);
+    }
+  );
+  arrow.matrix.copy(cursorMatrix);
+  parent.add(arrow);
+  return arrow;
+}*/
 
 export function createArrow(
   parent,
@@ -164,14 +184,11 @@ export function createArrow(
 }
 
 export function moveArrow(arrowGroup, direction) {
-  const speed = 0.001; // Adjust the speed as needed
+  const speed = 0.01; // Adjust the speed as needed
   const translation = direction.clone().multiplyScalar(speed);
 
   // Update the position of each arrow mesh in the group
   arrowGroup.children.forEach((arrow) => {
     arrow.position.add(translation);
   });
-
-  // Update the position of the arrow's group
-  arrowGroup.position.add(translation);
 }
