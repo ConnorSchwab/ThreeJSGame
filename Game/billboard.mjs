@@ -38,9 +38,9 @@ export function Billboard(scene, background) {
   let context = canvas.getContext("2d");
 
   let drawBackground =
-    background !== undefined ? image(context, background, 0.3) : undefined;
+    background !== undefined ? image(context, background, 0.2) : undefined;
 
-  const canvasSize = 256;
+  const canvasSize = 225;
   canvas.width = canvasSize * 2;
   canvas.height = canvasSize;
   let touchX = 0,
@@ -54,7 +54,7 @@ export function Billboard(scene, background) {
   let mesh = new THREE.Mesh(new THREE.PlaneGeometry(10, 5, 1, 1), material);
   mesh.overdraw = true;
   mesh.doubleSided = true;
-  mesh.position.set(0, 2, -7);
+  mesh.position.set(0, 2, -4);
 
   // mesh.rotation.x = -Math.PI / 2;
   scene.add(mesh);
